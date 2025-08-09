@@ -4,15 +4,21 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-native-vector-icons/material-design-icons": "^12.3.0",
+    "@shopify/react-native-skia": "v2.0.0-next.4",
     "expo": "~53.0.20",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
-    "react-native": "0.79.5"
+    "react-native": "0.79.5",
+    "react-native-gesture-handler": "~2.24.0",
+    "react-native-reanimated": "~3.17.4",
+    "expo-file-system": "~18.1.11",
+    "expo-media-library": "~17.1.7"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
