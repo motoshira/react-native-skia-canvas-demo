@@ -1,19 +1,26 @@
 import { StatusBar } from "expo-status-bar";
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import { genPath } from "./utils";
+import { DRAW_PEN_SIZE, ERASER_PEN_SIZE } from "./constants";
 
 import { useWindowDimensions } from "react-native";
 import {
+	BlendMode,
 	Canvas,
 	Image,
 	SkCanvas,
 	Skia,
+	PaintStyle,
 	SkImage,
 	SkSurface,
 	useImage,
 } from "@shopify/react-native-skia";
-import { runOnUI, useSharedValue } from "react-native-reanimated";
-import { useCallback, useEffect, useMemo } from "react";
+import {
+	runOnUI,
+	useDerivedValue,
+	useSharedValue,
+} from "react-native-reanimated";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	Gesture,
 	GestureDetector,
@@ -21,8 +28,6 @@ import {
 } from "react-native-gesture-handler";
 import { Point } from "./types";
 import { MaterialDesignIcons } from "@react-native-vector-icons/material-design-icons";
-
-const DRAW_PEN_SIZE = 5;
 
 export default function App() {
 	const sampleImage = useImage(require("./assets/sample.jpg"));
@@ -91,6 +96,13 @@ export default function App() {
 		drawCanvas.value?.clear(Skia.Color("transparent"));
 	}, [drawCanvas]);
 
+	const [drawMode, setDrawMode] = useState<"draw" | "erase">("draw");
+	const drawModeWorklet = useDerivedValue(() => drawMode);
+
+	const onToggleDrawMode = useCallback(() => {
+		setDrawMode((prev) => (prev === "draw" ? "erase" : "draw"));
+	}, []);
+
 	// last four points
 	const points = useSharedValue<Point[]>([]);
 
@@ -113,9 +125,16 @@ export default function App() {
 				points.value.shift();
 			}
 
+			const drawMode = drawModeWorklet.value;
+			const strokeWidth = drawMode === "draw" ? DRAW_PEN_SIZE : ERASER_PEN_SIZE;
+
+			paint.setStyle(PaintStyle.Fill);
 			paint.setColor(Skia.Color("#fff"));
-			paint.setStrokeWidth(DRAW_PEN_SIZE);
-			const path = genPath(points.value);
+			paint.setBlendMode(
+				drawMode === "draw" ? BlendMode.SrcOver : BlendMode.Clear,
+			);
+			paint.setStrokeWidth(strokeWidth);
+			const path = genPath(points.value, strokeWidth);
 			c.drawPath(path, paint);
 		})
 		.onEnd((_) => {
@@ -153,6 +172,16 @@ export default function App() {
 					</Canvas>
 				</GestureDetector>
 				<View style={styles.buttonContainer}>
+					<Pressable onPress={onToggleDrawMode} style={styles.button}>
+						<MaterialDesignIcons
+							name={drawMode === "draw" ? "draw" : "eraser"}
+							size={30}
+							color="#fff"
+						/>
+						<Text style={styles.buttonText}>
+							{drawMode === "draw" ? "Draw" : "Erase"}
+						</Text>
+					</Pressable>
 					<Pressable onPress={onReset} style={styles.button}>
 						<MaterialDesignIcons name="broom" size={30} color="#fff" />
 						<Text style={styles.buttonText}>Reset</Text>

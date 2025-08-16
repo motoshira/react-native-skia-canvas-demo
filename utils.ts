@@ -1,8 +1,7 @@
 import { Point } from "./types";
-import { DRAW_PEN_SIZE } from "./constants";
 import { Skia } from "@shopify/react-native-skia";
 
-export const genPath = (points: Point[]) => {
+export const genPath = (points: Point[], strokeWidth: number) => {
 	"worklet";
 	// supposed that 2 <= points.length  <= 4;
 	if (points.length < 2) {
@@ -34,7 +33,7 @@ export const genPath = (points: Point[]) => {
 	path.moveTo(p2.x, p2.y);
 	path.cubicTo(c1.x, c1.y, c2.x, c2.y, p3.x, p3.y);
 	path.stroke({
-		width: DRAW_PEN_SIZE,
+		width: strokeWidth,
 	});
 
 	return path;
