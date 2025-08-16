@@ -14,6 +14,8 @@ import {
 	SkImage,
 	SkSurface,
 	useImage,
+	useCanvasRef,
+	ImageFormat,
 } from "@shopify/react-native-skia";
 import {
 	runOnUI,
@@ -28,8 +30,11 @@ import {
 } from "react-native-gesture-handler";
 import { Point } from "./types";
 import { MaterialDesignIcons } from "@react-native-vector-icons/material-design-icons";
+import { useSaveImageAsync } from "./hooks";
 
 export default function App() {
+	const canvasRef = useCanvasRef();
+
 	const sampleImage = useImage(require("./assets/sample.jpg"));
 	const windowSize = useWindowDimensions();
 
@@ -103,6 +108,28 @@ export default function App() {
 		setDrawMode((prev) => (prev === "draw" ? "erase" : "draw"));
 	}, []);
 
+	const [isSaving, setIsSaving] = useState(false);
+
+	const saveImageAsync = useSaveImageAsync();
+
+	const onSave = useCallback(async () => {
+		try {
+			setIsSaving(true);
+			const image = await canvasRef.current?.makeImageSnapshotAsync();
+			if (!image) {
+				console.error("Failed to create image snapshot");
+				return;
+			}
+			const base64 = image.encodeToBase64(ImageFormat.JPEG);
+			await saveImageAsync(base64);
+			console.log("Image has been saved successfully!");
+		} catch (e) {
+			console.log("onSave error:", e);
+		} finally {
+			setIsSaving(false);
+		}
+	}, [saveImageAsync]);
+
 	// last four points
 	const points = useSharedValue<Point[]>([]);
 
@@ -147,6 +174,7 @@ export default function App() {
 				<StatusBar style="auto" />
 				<GestureDetector gesture={drawGesture}>
 					<Canvas
+						ref={canvasRef}
 						style={{
 							width: canvasWidth,
 							height: canvasHeight,
@@ -185,6 +213,10 @@ export default function App() {
 					<Pressable onPress={onReset} style={styles.button}>
 						<MaterialDesignIcons name="broom" size={30} color="#fff" />
 						<Text style={styles.buttonText}>Reset</Text>
+					</Pressable>
+					<Pressable disabled={isSaving} onPress={onSave} style={styles.button}>
+						<MaterialDesignIcons name="content-save" size={30} color="#fff" />
+						<Text style={styles.buttonText}>Save</Text>
 					</Pressable>
 				</View>
 			</SafeAreaView>
