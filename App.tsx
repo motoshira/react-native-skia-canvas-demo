@@ -38,7 +38,6 @@ export default function App() {
 			}
 			const base64 = image.encodeToBase64(ImageFormat.JPEG);
 			await saveImageAsync(base64);
-			console.log("Image has been saved successfully!");
 		} catch (e) {
 			console.log("onSave error:", e);
 		} finally {
@@ -46,10 +45,8 @@ export default function App() {
 		}
 	}, [saveImageAsync]);
 
-	const { performDrawOperation, startDrawing, endDrawing } = useDrawingOperations(
-		drawCanvas,
-		drawMode,
-	);
+	const { performDrawOperation, startDrawing, endDrawing } =
+		useDrawingOperations(drawCanvas, drawMode);
 
 	const drawGesture = useGestureHandling({
 		onDrawStart: startDrawing,
